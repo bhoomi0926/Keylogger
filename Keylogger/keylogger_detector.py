@@ -4,10 +4,11 @@ import tkinter as tk
 from tkinter import messagebox
 
 # Known keylogger indicators
-suspicious_files = ["logs.txt", "keylogger.py"]
-suspicious_processes = ["pynput", "hook", "logger"]
+suspicious_files = ["logs.txt", "keylogger.py"]  # List of file names commonly associated with keyloggers
+suspicious_processes = ["pynput", "hook", "logger"]  # List of keywords typically found in keylogger-related process names
 
 def detect_keylogger_files():
+    # List comprehension that checks for each suspicious file's existence
     detected_files = [file for file in suspicious_files if os.path.exists(file)]
     return detected_files
 
