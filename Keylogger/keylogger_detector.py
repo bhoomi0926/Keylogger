@@ -11,7 +11,7 @@ def detect_keylogger_files():
     # List comprehension that checks for each suspicious file's existence
     detected_files = [file for file in suspicious_files if os.path.exists(file)]
     return detected_files
-
+# Function to detect suspicious running processes on the system
 def detect_suspicious_processes():
     found_processes = []
     for process in psutil.process_iter(['pid', 'name']):
