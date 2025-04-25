@@ -50,7 +50,7 @@ def remove_keylogger():
         show_alert(alert_message)
     else:
         show_alert("No keylogger detected.")
-
+# Function to display a warning message box using Tkinter
 def show_alert(message):
     root = tk.Tk()
     root.withdraw()
