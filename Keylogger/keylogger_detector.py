@@ -23,10 +23,11 @@ def detect_suspicious_processes():
 def remove_keylogger():
     detected_files = detect_keylogger_files()
     found_processes = detect_suspicious_processes()
+    
 
     if detected_files or found_processes:
         alert_message = "Potential Keylogger Detected!\n\n"
-        
+  # If suspicious files are found      
         if detected_files:
             alert_message += f"Suspicious Files Found:\n{', '.join(detected_files)}\n"
             for file in detected_files:
@@ -35,7 +36,7 @@ def remove_keylogger():
                     alert_message += f"Deleted: {file}\n"
                 except Exception as e:
                     alert_message += f"Failed to delete {file}: {e}\n"
-
+# If suspicious processes are found
         if found_processes:
             alert_message += "Suspicious Processes Found:\n"
             for name, pid in found_processes:
