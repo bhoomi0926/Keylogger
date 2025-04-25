@@ -15,10 +15,11 @@ def detect_keylogger_files():
 def detect_suspicious_processes():
     found_processes = []
     for process in psutil.process_iter(['pid', 'name']):
+        # Check if any suspicious keyword appears in the process name
         if any(suspicious in process.info['name'].lower() for suspicious in suspicious_processes):
             found_processes.append((process.info['name'], process.info['pid']))
     return found_processes
-
+# Function to remove detected keyloggers (both files and processes)
 def remove_keylogger():
     detected_files = detect_keylogger_files()
     found_processes = detect_suspicious_processes()
