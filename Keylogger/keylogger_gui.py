@@ -20,13 +20,13 @@ class KeyloggerGUI:
         self.listener.start()
 
     def update_gui(self, key):
-        key = str(key).replace("'", "")  # Format key output
+        key = str(key).replace("'", "")
         if key == "Key.space":
-            key = " "  # Replace 'Key.space' with an actual space
+            key = " "  
         elif key == "Key.enter":
-            key = "\n"  # Newline for Enter key
+            key = "\n"  
         elif key.startswith("Key"):
-            key = f"[{key.replace('Key.', '')}]"  # Format special keys
+            key = f"[{key.replace('Key.', '')}]" 
 
         self.text_area.config(state=tk.NORMAL)
         self.text_area.insert(tk.END, key)
@@ -37,3 +37,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = KeyloggerGUI(root)
     root.mainloop()
+
