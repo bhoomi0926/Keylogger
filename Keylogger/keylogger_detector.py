@@ -11,21 +11,23 @@ def detect_keylogger_files():
     # List comprehension that checks for each suspicious file's existence
     detected_files = [file for file in suspicious_files if os.path.exists(file)]
     return detected_files
-
+# Function to detect suspicious running processes on the system
 def detect_suspicious_processes():
     found_processes = []
     for process in psutil.process_iter(['pid', 'name']):
+        # Check if any suspicious keyword appears in the process name
         if any(suspicious in process.info['name'].lower() for suspicious in suspicious_processes):
             found_processes.append((process.info['name'], process.info['pid']))
     return found_processes
-
+# Function to remove detected keyloggers (both files and processes)
 def remove_keylogger():
     detected_files = detect_keylogger_files()
     found_processes = detect_suspicious_processes()
+    
 
     if detected_files or found_processes:
         alert_message = "Potential Keylogger Detected!\n\n"
-        
+  # If suspicious files are found      
         if detected_files:
             alert_message += f"Suspicious Files Found:\n{', '.join(detected_files)}\n"
             for file in detected_files:
@@ -34,7 +36,7 @@ def remove_keylogger():
                     alert_message += f"Deleted: {file}\n"
                 except Exception as e:
                     alert_message += f"Failed to delete {file}: {e}\n"
-
+# If suspicious processes are found
         if found_processes:
             alert_message += "Suspicious Processes Found:\n"
             for name, pid in found_processes:
@@ -48,7 +50,7 @@ def remove_keylogger():
         show_alert(alert_message)
     else:
         show_alert("No keylogger detected.")
-
+# Function to display a warning message box using Tkinter
 def show_alert(message):
     root = tk.Tk()
     root.withdraw()
