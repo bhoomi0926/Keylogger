@@ -4,92 +4,110 @@ import tkinter as tk
 from tkinter import messagebox, scrolledtext
 
 # Suspicious keylogger indicators
-suspicious_files = ["logs.txt", "keylogger.py"]
-suspicious_processes = ["pynput", "hook", "logger"]
+suspicious_filenames = ["logs.txt", "keylogger.py", "keyloggerf.py"]
+suspicious_processes = ["pynput", "hook", "logger", "keylogger"]
 
-class KeyloggerDetectorGUI:
+class KeyloggerDetectorAndKillerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Keylogger Detector")
-        self.root.geometry("500x400")
+        self.root.title("Keylogger Detector, Killer & Remover")
+        self.root.geometry("650x500")
 
-        self.label = tk.Label(root, text="Keylogger Detection System", font=("Arial", 14, "bold"))
+        self.label = tk.Label(root, text="Keylogger Detection System", font=("Arial", 16, "bold"))
         self.label.pack(pady=10)
 
-        self.text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=("Arial", 12))
+        self.text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=("Courier", 12))
         self.text_area.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
-        self.text_area.insert(tk.END, "Click 'Scan' to detect keyloggers...\n")
         self.text_area.config(state=tk.DISABLED)
+        self.text_area.insert(tk.END, "Click 'Scan' to detect running keyloggers and files...\n")
 
-        self.scan_button = tk.Button(root, text="Scan", font=("Arial", 12, "bold"), bg="blue", fg="white", command=self.scan_for_keyloggers)
+        self.scan_button = tk.Button(root, text="Scan & Kill Keyloggers", font=("Arial", 12, "bold"), bg="blue", fg="white", command=self.scan_for_keyloggers)
         self.scan_button.pack(pady=5)
 
-        self.remove_button = tk.Button(root, text="Remove Keyloggers", font=("Arial", 12, "bold"), bg="red", fg="white", command=self.remove_keyloggers)
-        self.remove_button.pack(pady=5)
+        self.exit_button = tk.Button(root, text="Exit", font=("Arial", 12, "bold"), bg="black", fg="white", command=self.exit_program)
+        self.exit_button.pack(pady=5)
 
     def log_message(self, message):
         self.text_area.config(state=tk.NORMAL)
         self.text_area.insert(tk.END, message + "\n")
         self.text_area.config(state=tk.DISABLED)
-        self.text_area.yview(tk.END)  # Auto-scroll
+        self.text_area.yview(tk.END)
 
-    def scan_for_keyloggers(self):
+    def clear_log(self):
         self.text_area.config(state=tk.NORMAL)
-        self.text_area.delete("1.0", tk.END)  # Clear previous results
+        self.text_area.delete("1.0", tk.END)
         self.text_area.config(state=tk.DISABLED)
 
-        detected_files = self.detect_keylogger_files()
-        found_processes = self.detect_suspicious_processes()
-
-        if detected_files or found_processes:
-            self.log_message("⚠️ Keylogger Detected!\n")
-            if detected_files:
-                self.log_message(f"🔍 Suspicious Files Found: {', '.join(detected_files)}")
-            if found_processes:
-                self.log_message("🔍 Suspicious Processes Found:")
-                for name, pid in found_processes:
-                    self.log_message(f" - {name} (PID: {pid})")
-        else:
-            self.log_message("✅ No keyloggers detected.")
-
-    def detect_keylogger_files(self):
-        return [file for file in suspicious_files if os.path.exists(file)]
+    def detect_suspicious_files(self):
+        suspicious_found = []
+        for foldername, subfolders, filenames in os.walk("."):
+            for filename in filenames:
+                if filename.lower() in suspicious_filenames:
+                    full_path = os.path.join(foldername, filename)
+                    suspicious_found.append(full_path)
+        return suspicious_found
 
     def detect_suspicious_processes(self):
         found_processes = []
         for process in psutil.process_iter(['pid', 'name']):
-            if any(suspicious in process.info['name'].lower() for suspicious in suspicious_processes):
-                found_processes.append((process.info['name'], process.info['pid']))
+            try:
+                if any(suspicious in process.info['name'].lower() for suspicious in suspicious_processes):
+                    found_processes.append((process.info['name'], process.info['pid']))
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
         return found_processes
 
-    def remove_keyloggers(self):
-        detected_files = self.detect_keylogger_files()
+    def scan_for_keyloggers(self):
+        self.clear_log()
+        self.log_message("🔍 Scanning for keylogger files and running processes...")
+
+        detected_files = self.detect_suspicious_files()
         found_processes = self.detect_suspicious_processes()
 
-        if detected_files or found_processes:
-            self.log_message("\n🚨 Removing Detected Keyloggers...")
+        if not detected_files and not found_processes:
+            self.log_message("✅ No keyloggers detected.")
+            return
 
-            # Delete suspicious files
+        if detected_files:
+            self.log_message("\n🗂️ Suspicious Files Found:")
             for file in detected_files:
-                try:
-                    os.remove(file)
-                    self.log_message(f"✅ Deleted: {file}")
-                except Exception as e:
-                    self.log_message(f"❌ Failed to delete {file}: {e}")
+                self.log_message(f" - {file}")
 
-            # Terminate suspicious processes
+        if found_processes:
+            self.log_message("\n🛑 Suspicious Processes Running:")
             for name, pid in found_processes:
-                try:
-                    psutil.Process(pid).terminate()
-                    self.log_message(f"✅ Terminated process: {name} (PID: {pid})")
-                except Exception as e:
-                    self.log_message(f"❌ Failed to terminate {name}: {e}")
+                self.log_message(f" - {name} (PID: {pid})")
 
-            messagebox.showinfo("Keylogger Removed", "All detected threats have been removed!")
-        else:
-            messagebox.showinfo("No Threats", "No keyloggers detected.")
+        # Ask user before taking action
+        confirm = messagebox.askyesno("Confirm Removal", "⚠️ Suspicious items found.\nDo you want to delete files and kill processes?")
+        if confirm:
+            self.remove_keyloggers(detected_files, found_processes)
+
+    def remove_keyloggers(self, files, processes):
+        self.log_message("\n🚨 Attempting to remove detected keyloggers...")
+
+        # Delete suspicious files
+        for file_path in files:
+            try:
+                os.remove(file_path)
+                self.log_message(f"✅ Deleted file: {file_path}")
+            except Exception as e:
+                self.log_message(f"❌ Failed to delete file {file_path}: {e}")
+
+        # Kill suspicious processes
+        for name, pid in processes:
+            try:
+                psutil.Process(pid).terminate()
+                self.log_message(f"✅ Terminated process: {name} (PID: {pid})")
+            except Exception as e:
+                self.log_message(f"❌ Failed to terminate process {name} (PID: {pid}): {e}")
+
+        messagebox.showinfo("Threats Removed", "🛡️ All detected threats have been handled!")
+
+    def exit_program(self):
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = KeyloggerDetectorGUI(root)
+    app = KeyloggerDetectorAndKillerGUI(root)
     root.mainloop()
